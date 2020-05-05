@@ -5,6 +5,7 @@ const brickRow = 10;
 const brickCol = 8;
 const bricks = [];
 let i,j;
+
 //create ball properties
 const ball = {
     x:canvas.width/2,
@@ -14,6 +15,7 @@ const ball = {
     dx:4,
     dy:-4
 }
+
 //draw ball
 const drawBall = () => {
     ctx.beginPath();
@@ -22,14 +24,17 @@ const drawBall = () => {
     ctx.fill();
     ctx.closePath();
 }
+
 //create paddle properties
 const paddle = {
     x:canvas.width/2-40,
-    y:canvas.height-40,
+    y:canvas.height-15,
     w:100,
     h:10,
+    speed:10,
     dx:0
 }
+
 //draw paddle
 const drawPaddle = () => {
     ctx.beginPath();
@@ -38,11 +43,13 @@ const drawPaddle = () => {
     ctx.fill();
     ctx.closePath();
 }
+
 //draw scoreboard
 const drawScore = () => {
     ctx.font='20px';
     ctx.fillText(`Score: ${score}`,canvas.width-100,20); 
 }
+
 //create brick properties
 const brick = {
     w:60,
@@ -52,6 +59,7 @@ const brick = {
     offsetY:50,
     visible:true
 }
+
 //create bricks
 for(i=0; i<brickRow; i++){
     bricks[i]=[];
@@ -61,6 +69,7 @@ for(i=0; i<brickRow; i++){
         bricks[i][j]={x,y,...brick};
     }
 }
+
 //draw bricks
 const drawBricks = () => {
     bricks.forEach(column => {
@@ -73,10 +82,44 @@ const drawBricks = () => {
         });
     });
 }
+
+//move paddle
+const movePaddle = () => {
+    paddle.x+=paddle.dx;
+    //detect wall
+    if(paddle.x+paddle.w>canvas.width)
+        paddle.x=canvas.width-paddle.w;
+    if(paddle.x<0)
+        paddle.x=0;
+}
+const keyDown = (e) => {
+    if(e.key==='Left'||e.key==='ArrowLeft')
+        paddle.dx=-paddle.speed;    
+    if(e.key==='Right'||e.key==='ArrowRight')
+                paddle.dx=paddle.speed;
+}
+const keyUp = (e) => {
+    if  (e.key==='Right'||
+        e.key==='ArrowRight'||
+        e.key==='Left'||
+        e.key==='ArrowLeft')
+        paddle.dx=0;
+}
+//event listeners
+document.addEventListener('keydown',keyDown);
+document.addEventListener('keyup',keyUp);
+
 const draw = () => {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     drawBall();
     drawPaddle();
     drawScore();
     drawBricks();
 }
-draw();
+
+const update = () => {
+    draw();
+    movePaddle();
+    requestAnimationFrame(update);
+}
+update();
