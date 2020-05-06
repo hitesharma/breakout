@@ -2,7 +2,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let score = 0;
 const brickRow = 10;
-const brickCol = 8;
+const brickCol = 5;
 const bricks = [];
 let i,j;
 
@@ -83,6 +83,56 @@ const drawBricks = () => {
     });
 }
 
+//show all the bricks
+const showAll = () => {
+    bricks.forEach(column => {
+        column.forEach(row => (row.visible = true));
+    });
+}
+
+//move ball
+const moveBall = () => {
+    ball.x+=ball.dx;
+    ball.y+=ball.dy;
+
+    //wall collision in x-axis
+    if(ball.x+ball.size > canvas.width || ball.x-ball.size < 0)
+        ball.dx *= -1;
+
+    //wall collision in y-axis
+    if(ball.y+ball.size > canvas.height || ball.y-ball.size < 0)
+        ball.dy *= -1;
+
+    //paddle collision
+    if(ball.x-ball.size > paddle.x && 
+       ball.x+ball.size < paddle.x+paddle.w && 
+       ball.y+ball.size > paddle.y)
+            ball.dy = -ball.speed;
+
+    //brick collision
+    bricks.forEach(column => {
+        column.forEach(row => {
+            if(row.visible){
+                if( ball.x-ball.size > row.x && //left brick side
+                    ball.x+ball.size < row.x+row.w && //right brick side
+                    ball.y+ball.size > row.y && //top brick side
+                    ball.y-ball.size < row.y+row.h //bottom brick side
+                  ){
+                      ball.dy *= -1;
+                      row.visible = false;
+                  }
+                    
+            }
+        });
+    });
+    
+    //hit bottom
+    if(ball.y + ball.size > canvas.height){
+        showAll();
+        score = 0;
+    }
+}
+
 //move paddle
 const movePaddle = () => {
     paddle.x+=paddle.dx;
@@ -92,22 +142,21 @@ const movePaddle = () => {
     if(paddle.x<0)
         paddle.x=0;
 }
-const keyDown = (e) => {
+
+document.addEventListener('keydown',(e) => {
     if(e.key==='Left'||e.key==='ArrowLeft')
         paddle.dx=-paddle.speed;    
     if(e.key==='Right'||e.key==='ArrowRight')
                 paddle.dx=paddle.speed;
-}
-const keyUp = (e) => {
+});
+
+document.addEventListener('keyup',(e) => {
     if  (e.key==='Right'||
         e.key==='ArrowRight'||
         e.key==='Left'||
         e.key==='ArrowLeft')
         paddle.dx=0;
-}
-//event listeners
-document.addEventListener('keydown',keyDown);
-document.addEventListener('keyup',keyUp);
+});
 
 const draw = () => {
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -120,6 +169,8 @@ const draw = () => {
 const update = () => {
     draw();
     movePaddle();
+    moveBall();
     requestAnimationFrame(update);
 }
+
 update();
